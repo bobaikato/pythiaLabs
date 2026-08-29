@@ -1,0 +1,58 @@
+version: 1
+
+metadata:
+  ota:
+    minimum_version: "1.6.27"
+
+project:
+  name: pythialabs
+  description: Pre-release Ota design-partner pressure contract; all declared lanes require maintainer review before agent execution.
+
+runtimes:
+  elixir: "~> 1.15"
+
+tasks:
+  verify:elixir:
+    description: Run the repository's Elixir test suite after maintainer-reviewed hydration.
+    command:
+      exe: mix
+      args:
+        - test
+
+  verify:mcp-smoke:
+    description: Exercise the MCP smoke harness after maintainer-reviewed Mix and Node hydration.
+    command:
+      exe: node
+      args:
+        - integrations/mcp/smoke.mjs
+
+  verify:site-build:
+    description: Build the static site from its workflow-owned working directory after reviewed npm hydration.
+    command:
+      exe: npm
+      args:
+        - run
+        - build
+      cwd: site
+
+  verify:worker:
+    description: Run the Rust port-worker tests after maintainer-reviewed Rust hydration.
+    command:
+      exe: cargo
+      args:
+        - test
+      cwd: workers/solver_port
+
+agent:
+  safe_tasks: []
+  verify_after_changes: []
+  writable_paths: []
+  protected_paths:
+    - ota.yaml
+    - .github/workflows/ota-pre-release-pressure.yml
+    - docs/ota-pre-release-pressure.md
+  bootstrap:
+    ota:
+      source:
+        kind: git_rev
+        rev: 6fcffbdb551c2c452c47f9d0c4b83c607785960f
