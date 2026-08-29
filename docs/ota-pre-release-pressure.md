@@ -49,7 +49,8 @@ or the Liminal multi-repository lifecycle. It is distinct from the Ota-owned con
 `.github/workflows/ota-pre-release-container-pressure.yml` is a separate Linux-only, fork-only
 matrix. It uses the contract's `node` execution context, pinned to
 `node:20-bookworm@sha256:cacf10e99285cbbc891452e31249c1b5ec3ba225f40028fae946b75aeaf1b66a`
-for `linux/amd64`, and invokes Ota with `--mode container`.
+for `linux/amd64`, invokes Ota with `--mode container --stream`, and retains the child command
+output with Ota's selected-context summary.
 
 | Lane | Closure exercised | What the artifact witnesses | Not proved |
 | --- | --- | --- | --- |

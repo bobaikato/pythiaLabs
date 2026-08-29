@@ -34,7 +34,7 @@ jobs:
           set +e
           run_lane() {
             local lane="$1"
-            ota run "$lane" --mode container > ".ota/pressure/container/${lane//:/-}.log" 2>&1
+            ota run "$lane" --mode container --stream > ".ota/pressure/container/${lane//:/-}.log" 2>&1
             printf '%s\n' "$?" > ".ota/pressure/container/${lane//:/-}.exit"
           }
           run_lane verify:mcp-smoke
