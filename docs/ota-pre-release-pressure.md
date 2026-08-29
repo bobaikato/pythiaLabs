@@ -25,6 +25,27 @@ or any external mutation. It is separate and non-required, but failures remain v
 pressure Ota's declaration, diagnostic, and conservative discovery surfaces before the v1.6.27
 release.
 
+## Execution Matrix
+
+`.github/workflows/ota-pre-release-execution-pressure.yml` is a separate visible fork-only matrix.
+It observes the `core`, `mcp`, `worker`, and `site` workflow previews, then runs the selected
+non-credentialed tasks through `ota run --json` and retains one result per lane. The workflow
+previews are expected to remain blocked until a crossing authority exists; they are evidence of
+that refusal, not green execution gates.
+
+| Lane family | Included execution | Hydration posture | Deliberate limit |
+| --- | --- | --- | --- |
+| Elixir core | format and test | Explicit reviewed Mix/Hex setup tasks | Mix/Hex is not yet an Ota typed hydration source |
+| MCP | Node syntax and smoke | No package hydration; smoke owns a fake Mix executable | Does not prove a real MCP host loaded or enforced Pythia |
+| Rust worker | release build and test | Explicit reviewed `cargo fetch` task | Current Cargo resolution is mutable because no lockfile is retained |
+| Site | `npm ci`, build, and format check | Typed npm CI hydration in `site/` | Does not prove Pages deployment or Lighthouse publication |
+| Python conformance | Action Envelope, VCE, ACI, and local CAEP verified-evidence tests | Explicit reviewed `python -m pip install` tasks | Excludes credentialed CAEP provider calls and the authority-boundary pilot |
+
+The execution matrix does not run Docker/container mode, provider calls, GitHub merge, Gmail/GitHub
+communication, or the Liminal multi-repository lifecycle. Docker remains a separately declared
+future pressure surface because the current image build installs mutable Rust and does not yet have
+an Ota-reviewed container execution boundary.
+
 ## Assumptions And Boundaries
 
 - The declared Elixir, MCP, worker, and site commands are contributor-lane proposals, not proof

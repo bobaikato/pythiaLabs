@@ -1,0 +1,90 @@
+name: Ota Pre-release Execution Pressure
+
+on:
+  push:
+    branches:
+      - bobai/ota-pre-release-pressure
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  execution-pressure:
+    name: Ota non-credentialed execution matrix
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Ota from contract source
+        uses: ota-run/setup@v1
+        with:
+          source: contract
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.16"
+          otp-version: "26"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Create pressure artifact directory
+        run: mkdir -p .ota/pressure/execution
+
+      - name: Observe declared workflow crossing previews
+        shell: bash
+        run: |
+          set +e
+          for workflow in core mcp worker site; do
+            ota up --workflow "$workflow" --dry-run --json > ".ota/pressure/execution/workflow-${workflow}.json"
+            printf '%s\n' "$?" > ".ota/pressure/execution/workflow-${workflow}.exit"
+          done
+          exit 0
+
+      - name: Run declared non-credentialed lanes
+        shell: bash
+        run: |
+          set +e
+          run_lane() {
+            local lane="$1"
+            ota run --json "$lane" > ".ota/pressure/execution/${lane//:/-}.json"
+            printf '%s\n' "$?" > ".ota/pressure/execution/${lane//:/-}.exit"
+          }
+          run_lane verify:elixir-format
+          run_lane verify:elixir-test
+          run_lane verify:mcp-smoke
+          run_lane verify:worker-build
+          run_lane verify:worker-test
+          run_lane verify:site-build
+          run_lane verify:site-format
+          run_lane verify:action-envelope-conformance
+          run_lane verify:vce-conformance
+          run_lane verify:aci-conformance
+          run_lane verify:caep-evidence
+          exit 0
+
+      - name: Require every selected execution lane to pass
+        shell: bash
+        run: |
+          for result in .ota/pressure/execution/verify-*.exit; do
+            test "$(cat "$result")" -eq 0
+          done
+
+      - name: Retain Ota execution-pressure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ota-pre-release-execution-pressure-${{ github.run_id }}
+          path: .ota/pressure/execution
+          if-no-files-found: warn

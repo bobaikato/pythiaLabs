@@ -11,37 +11,427 @@ project:
 runtimes:
   elixir: "~> 1.15"
 
+toolchains:
+  node:
+    version: "20"
+    package_managers:
+      npm: "*"
+  python:
+    version: "3.12"
+
 tasks:
-  verify:elixir:
-    description: Run the repository's Elixir test suite after maintainer-reviewed hydration.
+  setup:elixir:hex:
+    description: Install the Elixir package manager after maintainer review.
+    category: setup
+    command:
+      exe: mix
+      args:
+        - local.hex
+        - --force
+    requirements:
+      tools:
+        mix: "*"
+    effects:
+      network: true
+      network_kind: dependency_hydration
+
+  setup:elixir:rebar:
+    description: Install Rebar after the Elixir package manager is available.
+    category: setup
+    depends_on:
+      - setup:elixir:hex
+    command:
+      exe: mix
+      args:
+        - local.rebar
+        - --force
+    requirements:
+      tools:
+        mix: "*"
+    effects:
+      network: true
+      network_kind: dependency_hydration
+
+  setup:elixir:deps:
+    description: Hydrate Elixir dependencies from mix.exs and mix.lock.
+    category: setup
+    depends_on:
+      - setup:elixir:rebar
+    command:
+      exe: mix
+      args:
+        - deps.get
+    requirements:
+      tools:
+        mix: "*"
+    effects:
+      writes:
+        - deps
+      network: true
+      network_kind: dependency_hydration
+
+  setup:elixir:compile:
+    description: Compile the Elixir project after dependency hydration.
+    category: setup
+    depends_on:
+      - setup:elixir:deps
+    command:
+      exe: mix
+      args:
+        - compile
+    requirements:
+      tools:
+        mix: "*"
+    effects:
+      writes:
+        - _build
+
+  verify:elixir-format:
+    description: Verify Elixir formatting after the reviewed setup closure.
+    category: verify
+    depends_on:
+      - setup:elixir:compile
+    command:
+      exe: mix
+      args:
+        - format
+        - --check-formatted
+    requirements:
+      tools:
+        mix: "*"
+
+  verify:elixir-test:
+    description: Run the Elixir test suite after the reviewed setup closure.
+    category: verify
+    depends_on:
+      - setup:elixir:compile
     command:
       exe: mix
       args:
         - test
+    requirements:
+      tools:
+        mix: "*"
+
+  verify:mcp-server-syntax:
+    description: Check the MCP server JavaScript syntax.
+    category: verify
+    command:
+      exe: node
+      args:
+        - --check
+        - integrations/mcp/server.mjs
+    requirements:
+      toolchains:
+        - node
+
+  verify:mcp-smoke-syntax:
+    description: Check the MCP smoke harness JavaScript syntax.
+    category: verify
+    command:
+      exe: node
+      args:
+        - --check
+        - integrations/mcp/smoke.mjs
+    requirements:
+      toolchains:
+        - node
 
   verify:mcp-smoke:
-    description: Exercise the MCP smoke harness after maintainer-reviewed Mix and Node hydration.
+    description: Exercise the MCP smoke harness with its test-owned fake Mix executable.
+    category: verify
+    depends_on:
+      - verify:mcp-server-syntax
+      - verify:mcp-smoke-syntax
     command:
       exe: node
       args:
         - integrations/mcp/smoke.mjs
+    requirements:
+      toolchains:
+        - node
+
+  setup:worker:
+    description: Fetch Rust port-worker dependencies from the current Cargo resolution.
+    category: setup
+    command:
+      exe: cargo
+      args:
+        - fetch
+      cwd: workers/solver_port
+    requirements:
+      tools:
+        cargo: "*"
+    effects:
+      network: true
+      network_kind: dependency_hydration
+
+  verify:worker-build:
+    description: Build the Rust port worker after reviewed Cargo hydration.
+    category: verify
+    depends_on:
+      - setup:worker
+    command:
+      exe: cargo
+      args:
+        - build
+        - --release
+      cwd: workers/solver_port
+    requirements:
+      tools:
+        cargo: "*"
+    effects:
+      writes:
+        - workers/solver_port/target
+
+  verify:worker-test:
+    description: Run Rust port-worker tests after reviewed Cargo hydration.
+    category: verify
+    depends_on:
+      - setup:worker
+    command:
+      exe: cargo
+      args:
+        - test
+      cwd: workers/solver_port
+    requirements:
+      tools:
+        cargo: "*"
+
+  setup:site:
+    description: Hydrate the static site's npm dependencies from its package lockfile.
+    category: setup
+    prepare:
+      kind: dependency_hydration
+      medium: package_dependencies
+      source:
+        kind: node_package_manager
+        cwd: site
+        manager: npm
+        mode: ci
+    requirements:
+      toolchains:
+        - node
+    effects:
+      writes:
+        - site/node_modules
+      network: true
+      network_kind: dependency_hydration
 
   verify:site-build:
-    description: Build the static site from its workflow-owned working directory after reviewed npm hydration.
+    description: Build the static site from its workflow-owned working directory.
+    category: verify
+    depends_on:
+      - setup:site
     command:
       exe: npm
       args:
         - run
         - build
       cwd: site
+    requirements:
+      toolchains:
+        - node
+    effects:
+      writes:
+        - site/dist
 
-  verify:worker:
-    description: Run the Rust port-worker tests after maintainer-reviewed Rust hydration.
+  verify:site-format:
+    description: Verify static-site formatting from its workflow-owned working directory.
+    category: verify
+    depends_on:
+      - setup:site
     command:
-      exe: cargo
+      exe: npm
       args:
-        - test
-      cwd: workers/solver_port
+        - run
+        - format:check
+      cwd: site
+    requirements:
+      toolchains:
+        - node
+
+  setup:action-envelope-conformance:
+    description: Install Action Envelope conformance dependencies into the CI Python environment.
+    category: setup
+    command:
+      exe: python
+      args:
+        - -m
+        - pip
+        - install
+        - --disable-pip-version-check
+        - -r
+        - standards/agent-actions/conformance/requirements.txt
+    requirements:
+      toolchains:
+        - python
+    effects:
+      network: true
+      network_kind: dependency_hydration
+
+  verify:action-envelope-conformance:
+    description: Run the Action Envelope conformance suite.
+    category: verify
+    depends_on:
+      - setup:action-envelope-conformance
+    command:
+      exe: python
+      args:
+        - -m
+        - unittest
+        - discover
+        - -s
+        - standards/agent-actions/conformance
+        - -p
+        - test_*.py
+        - -v
+    requirements:
+      toolchains:
+        - python
+
+  setup:vce-conformance:
+    description: Install VCE conformance dependencies into the CI Python environment.
+    category: setup
+    command:
+      exe: python
+      args:
+        - -m
+        - pip
+        - install
+        - --disable-pip-version-check
+        - -r
+        - standards/agent-continuity/conformance/requirements.txt
+    requirements:
+      toolchains:
+        - python
+    effects:
+      network: true
+      network_kind: dependency_hydration
+
+  verify:vce-conformance:
+    description: Run the VCE conformance suite.
+    category: verify
+    depends_on:
+      - setup:vce-conformance
+    command:
+      exe: python
+      args:
+        - -m
+        - unittest
+        - discover
+        - -s
+        - standards/agent-continuity/conformance
+        - -p
+        - test_*.py
+        - -v
+    requirements:
+      toolchains:
+        - python
+
+  setup:aci-conformance:
+    description: Install ACI conformance dependencies into the CI Python environment.
+    category: setup
+    command:
+      exe: python
+      args:
+        - -m
+        - pip
+        - install
+        - --disable-pip-version-check
+        - -r
+        - standards/agent-continuity/authority-causality/conformance/requirements.txt
+    requirements:
+      toolchains:
+        - python
+    effects:
+      network: true
+      network_kind: dependency_hydration
+
+  verify:aci-conformance:
+    description: Run the ACI conformance suite.
+    category: verify
+    depends_on:
+      - setup:aci-conformance
+    command:
+      exe: python
+      args:
+        - -m
+        - unittest
+        - discover
+        - -s
+        - standards/agent-continuity/authority-causality/conformance
+        - -p
+        - test_*.py
+        - -v
+    requirements:
+      toolchains:
+        - python
+
+  setup:caep-evidence:
+    description: Install local CAEP cryptographic verifier dependencies without provider credentials.
+    category: setup
+    command:
+      exe: python
+      args:
+        - -m
+        - pip
+        - install
+        - -r
+        - protocols/caep/requirements-crypto.txt
+    requirements:
+      toolchains:
+        - python
+    effects:
+      network: true
+      network_kind: dependency_hydration
+
+  verify:caep-evidence:
+    description: Run local CAEP verified-evidence tests without provider credentials.
+    category: verify
+    depends_on:
+      - setup:caep-evidence
+    command:
+      exe: python
+      args:
+        - -m
+        - unittest
+        - discover
+        - -s
+        - protocols/caep/tests
+        - -v
+    requirements:
+      toolchains:
+        - python
+
+workflows:
+  default: core
+  core:
+    intent: ci_verification
+    description: Elixir setup and test flow.
+    setup:
+      task: setup:elixir:compile
+    run:
+      task: verify:elixir-test
+  mcp:
+    intent: ci_verification
+    description: Node-hosted MCP smoke flow using its test-owned fake Mix executable.
+    run:
+      task: verify:mcp-smoke
+  worker:
+    intent: ci_verification
+    description: Rust port-worker hydration and test flow.
+    setup:
+      task: setup:worker
+    run:
+      task: verify:worker-test
+  site:
+    intent: ci_verification
+    description: Static-site npm hydration and build flow.
+    setup:
+      task: setup:site
+    run:
+      task: verify:site-build
 
 agent:
   safe_tasks: []
@@ -50,6 +440,7 @@ agent:
   protected_paths:
     - ota.yaml
     - .github/workflows/ota-pre-release-pressure.yml
+    - .github/workflows/ota-pre-release-execution-pressure.yml
     - docs/ota-pre-release-pressure.md
   bootstrap:
     ota:
