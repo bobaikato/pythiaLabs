@@ -7,7 +7,7 @@ claim that PythiaLabs is governed by Ota.
 
 - upstream revision: `17df87775c0d5407c07e86f278455d912ed51305`
 - fork branch: `bobai/ota-pre-release-pressure`
-- Ota source: Core `6fcffbdbee322d56f1abdb0b163f5b64f8ab29c5`, reporting v1.6.27
+- Ota source: Core `cd99c9abd2c0225b454371e897eca2486319db26`, reporting v1.6.27
 - Ota bootstrap: contract-owned, immutable `git_rev`
 
 ## Evidence Matrix

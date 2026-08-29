@@ -9,7 +9,7 @@ project:
   description: Pre-release Ota design-partner pressure contract; all declared lanes require maintainer review before agent execution.
 
 runtimes:
-  elixir: "~> 1.15"
+  elixir: ">=1.15,<2"
 
 toolchains:
   node:
@@ -471,7 +471,7 @@ agent:
     ota:
       source:
         kind: git_rev
-        rev: 6fcffbdbee322d56f1abdb0b163f5b64f8ab29c5
+        rev: cd99c9abd2c0225b454371e897eca2486319db26
   notes: |
     Discover the canonical agent surface with `ota tasks --safe --use` first. An agent may run
     only a lane reported callable for agent use, and must invoke that lane through
