@@ -13,7 +13,6 @@ jobs:
   pressure:
     name: Ota declaration and discovery pressure
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v6

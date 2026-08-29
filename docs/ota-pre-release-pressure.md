@@ -21,8 +21,9 @@ claim that PythiaLabs is governed by Ota.
 | Artifact retention | `actions/upload-artifact` | Machine-readable outputs and exit statuses for the exact fork run | Receipt, archive, assurance, or third-party attestation |
 
 The workflow does not run `ota run`, `ota up`, Mix, Cargo, Node, Python, provider calls, a merge,
-or any external mutation. It is non-blocking by design and exists to pressure Ota's declaration,
-diagnostic, and conservative discovery surfaces before the v1.6.27 release.
+or any external mutation. It is separate and non-required, but failures remain visible. It exists to
+pressure Ota's declaration, diagnostic, and conservative discovery surfaces before the v1.6.27
+release.
 
 ## Assumptions And Boundaries
 
