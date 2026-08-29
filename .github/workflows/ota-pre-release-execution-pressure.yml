@@ -58,7 +58,7 @@ jobs:
           set +e
           run_lane() {
             local lane="$1"
-            ota run --json "$lane" > ".ota/pressure/execution/${lane//:/-}.json"
+            ota run "$lane" > ".ota/pressure/execution/${lane//:/-}.log" 2>&1
             printf '%s\n' "$?" > ".ota/pressure/execution/${lane//:/-}.exit"
           }
           run_lane verify:elixir-format

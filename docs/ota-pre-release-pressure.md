@@ -29,7 +29,7 @@ release.
 
 `.github/workflows/ota-pre-release-execution-pressure.yml` is a separate visible fork-only matrix.
 It observes the `core`, `mcp`, `worker`, and `site` workflow previews, then runs the selected
-non-credentialed tasks through `ota run --json` and retains one result per lane. The workflow
+non-credentialed tasks through `ota run` and retains each lane's text output and exit status. The workflow
 previews are expected to remain blocked until a crossing authority exists; they are evidence of
 that refusal, not green execution gates.
 

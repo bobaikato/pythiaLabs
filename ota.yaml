@@ -54,6 +54,9 @@ tasks:
 
   setup:elixir:deps:
     description: Hydrate Elixir dependencies from mix.exs and mix.lock.
+    notes: |
+      Mix hydration is intentionally modeled as a reviewed networked setup lane. Ota does not yet
+      provide a typed Mix source carrier, so this command remains explicit and non-agent-safe.
     category: setup
     depends_on:
       - setup:elixir:rebar
@@ -139,6 +142,10 @@ tasks:
 
   verify:mcp-smoke:
     description: Exercise the MCP smoke harness with its test-owned fake Mix executable.
+    notes: |
+      This proves only the repository-owned JavaScript harness protocol against its fake Mix
+      executable. It does not prove a real Mix runtime, MCP host loading, provider authority, or
+      an agent-executable integration lane.
     category: verify
     depends_on:
       - verify:mcp-server-syntax
@@ -153,6 +160,10 @@ tasks:
 
   setup:worker:
     description: Fetch Rust port-worker dependencies from the current Cargo resolution.
+    notes: |
+      This networked hydration follows the repository's current Cargo resolution. It remains a
+      maintainer-reviewed setup lane until its dependency source and write effects are eligible for
+      a narrower agent boundary.
     category: setup
     command:
       exe: cargo
@@ -200,6 +211,9 @@ tasks:
 
   setup:site:
     description: Hydrate the static site's npm dependencies from its package lockfile.
+    notes: |
+      The typed npm CI source owns the lockfile-respecting installation in `site`. It is still a
+      networked setup action and is deliberately outside `agent.safe_tasks`.
     category: setup
     prepare:
       kind: dependency_hydration
@@ -370,6 +384,9 @@ tasks:
 
   setup:caep-evidence:
     description: Install local CAEP cryptographic verifier dependencies without provider credentials.
+    notes: |
+      This lane is limited to local cryptographic conformance. Credentialed CAEP delivery,
+      provider calls, external mutation, and production identity remain outside this contract.
     category: setup
     command:
       exe: python
@@ -409,6 +426,9 @@ workflows:
   core:
     intent: ci_verification
     description: Elixir setup and test flow.
+    notes: |
+      Use this only after the reviewed Mix setup closure is available. It does not make networked
+      setup or Elixir execution agent-safe.
     setup:
       task: setup:elixir:compile
     run:
@@ -416,6 +436,8 @@ workflows:
   mcp:
     intent: ci_verification
     description: Node-hosted MCP smoke flow using its test-owned fake Mix executable.
+    notes: |
+      This workflow is a harness smoke check, not evidence that a real MCP host loaded the server.
     run:
       task: verify:mcp-smoke
   worker:
@@ -428,6 +450,9 @@ workflows:
   site:
     intent: ci_verification
     description: Static-site npm hydration and build flow.
+    notes: |
+      The workflow preserves the CI working directory and typed npm CI hydration, but remains
+      maintainer-reviewed because dependency installation uses the network.
     setup:
       task: setup:site
     run:
@@ -447,3 +472,15 @@ agent:
       source:
         kind: git_rev
         rev: 6fcffbdbee322d56f1abdb0b163f5b64f8ab29c5
+  notes: |
+    Discover the canonical agent surface with `ota tasks --safe --use` first. An agent may run
+    only a lane reported callable for agent use, and must invoke that lane through
+    `ota run --agent <task>`.
+    This pressure contract currently declares no agent-safe tasks: setup hydrates dependencies or
+    writes build state, and verification depends on those setup closures. Do not omit `--agent`,
+    invoke raw repository commands, or treat ordinary `ota run` as agent authorization.
+    No `entrypoint`, `default_task`, or `verify_after_changes` is declared because there is no
+    finite safe closure to name. Their absence is intentional, not an incomplete configuration.
+    Pythia's own ALLOW decisions are repository input evidence, never Ota execution authority.
+    Widen this boundary only after a separate review proves the full selected closure, effects,
+    writable/protected paths, prerequisites, and refusal behavior.
