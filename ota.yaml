@@ -8,8 +8,19 @@ project:
   name: pythialabs
   description: Pre-release Ota design-partner pressure contract; all declared lanes require maintainer review before agent execution.
 
-runtimes:
-  elixir: ">=1.15,<2"
+execution:
+  default_context: host
+  contexts:
+    host:
+      backend: native
+    node:
+      backend: container
+      lifecycle: ephemeral
+      container:
+        image: node:20-bookworm@sha256:cacf10e99285cbbc891452e31249c1b5ec3ba225f40028fae946b75aeaf1b66a
+        platform: linux/amd64
+        engines:
+          - docker
 
 toolchains:
   node:
@@ -29,6 +40,8 @@ tasks:
         - local.hex
         - --force
     requirements:
+      runtimes:
+        elixir: ">=1.15,<2"
       tools:
         mix: "*"
     effects:
@@ -46,6 +59,8 @@ tasks:
         - local.rebar
         - --force
     requirements:
+      runtimes:
+        elixir: ">=1.15,<2"
       tools:
         mix: "*"
     effects:
@@ -65,6 +80,8 @@ tasks:
       args:
         - deps.get
     requirements:
+      runtimes:
+        elixir: ">=1.15,<2"
       tools:
         mix: "*"
     effects:
@@ -83,6 +100,8 @@ tasks:
       args:
         - compile
     requirements:
+      runtimes:
+        elixir: ">=1.15,<2"
       tools:
         mix: "*"
     effects:
@@ -100,6 +119,8 @@ tasks:
         - format
         - --check-formatted
     requirements:
+      runtimes:
+        elixir: ">=1.15,<2"
       tools:
         mix: "*"
 
@@ -113,6 +134,8 @@ tasks:
       args:
         - test
     requirements:
+      runtimes:
+        elixir: ">=1.15,<2"
       tools:
         mix: "*"
 
@@ -127,6 +150,13 @@ tasks:
     requirements:
       toolchains:
         - node
+    execution:
+      default_mode: native
+      modes:
+        native:
+          context: host
+        container:
+          context: node
 
   verify:mcp-smoke-syntax:
     description: Check the MCP smoke harness JavaScript syntax.
@@ -139,6 +169,13 @@ tasks:
     requirements:
       toolchains:
         - node
+    execution:
+      default_mode: native
+      modes:
+        native:
+          context: host
+        container:
+          context: node
 
   verify:mcp-smoke:
     description: Exercise the MCP smoke harness with its test-owned fake Mix executable.
@@ -157,6 +194,13 @@ tasks:
     requirements:
       toolchains:
         - node
+    execution:
+      default_mode: native
+      modes:
+        native:
+          context: host
+        container:
+          context: node
 
   setup:worker:
     description: Fetch Rust port-worker dependencies from the current Cargo resolution.
@@ -231,6 +275,13 @@ tasks:
         - site/node_modules
       network: true
       network_kind: dependency_hydration
+    execution:
+      default_mode: native
+      modes:
+        native:
+          context: host
+        container:
+          context: node
 
   verify:site-build:
     description: Build the static site from its workflow-owned working directory.
@@ -249,6 +300,13 @@ tasks:
     effects:
       writes:
         - site/dist
+    execution:
+      default_mode: native
+      modes:
+        native:
+          context: host
+        container:
+          context: node
 
   verify:site-format:
     description: Verify static-site formatting from its workflow-owned working directory.

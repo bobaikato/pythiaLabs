@@ -41,10 +41,25 @@ that refusal, not green execution gates.
 | Site | `npm ci`, build, and format check | Typed npm CI hydration in `site/` | Does not prove Pages deployment or Lighthouse publication |
 | Python conformance | Action Envelope, VCE, ACI, and local CAEP verified-evidence tests | Explicit reviewed `python -m pip install` tasks | Excludes credentialed CAEP provider calls and the authority-boundary pilot |
 
-The execution matrix does not run Docker/container mode, provider calls, GitHub merge, Gmail/GitHub
-communication, or the Liminal multi-repository lifecycle. Docker remains a separately declared
-future pressure surface because the current image build installs mutable Rust and does not yet have
-an Ota-reviewed container execution boundary.
+The native execution matrix does not run provider calls, GitHub merge, Gmail/GitHub communication,
+or the Liminal multi-repository lifecycle. It is distinct from the Ota-owned container matrix below.
+
+## Ota-Owned Container Matrix
+
+`.github/workflows/ota-pre-release-container-pressure.yml` is a separate Linux-only, fork-only
+matrix. It uses the contract's `node` execution context, pinned to
+`node:20-bookworm@sha256:cacf10e99285cbbc891452e31249c1b5ec3ba225f40028fae946b75aeaf1b66a`
+for `linux/amd64`, and invokes Ota with `--mode container`.
+
+| Lane | Closure exercised | What the artifact witnesses | Not proved |
+| --- | --- | --- | --- |
+| MCP smoke | syntax dependencies plus smoke harness | Ota selected the container context and executed the complete Node closure | Real Mix, MCP-host loading, or provider enforcement |
+| Site build | typed `npm ci` in `site/` plus `npm run build` | Ota preserved the declared working directory and hydrated/build state through the container closure | Pages deployment, formatting conformance, or image provenance beyond the pinned digest |
+
+This does **not** use or validate Pythia's Dockerfile. The Dockerfile currently installs Rust through
+a mutable network bootstrap and remains outside Ota container authority. The matrix also does not
+prove container isolation beyond Ota's declared execution behavior, agent authority, provider
+contact, arbitrary repository immutability, or non-Linux container portability.
 
 ## Assumptions And Boundaries
 
@@ -54,6 +69,8 @@ an Ota-reviewed container execution boundary.
   Liminal multi-repository lifecycle are intentionally excluded.
 - Pythia `ALLOW` remains input evidence only. It grants no Ota execution authority.
 - MCP files and smoke output do not prove a real host loaded or enforced Pythia.
+- The container matrix proves only the declared Linux Node contexts and selected closures. It does
+  not establish Pythia's Dockerfile, a multi-language image, or macOS/Windows container parity.
 - A successful fork workflow is pre-release Ota pressure evidence only. It does not replace a
   released-binary run, independently administered policy, provider attestation, or Aleksei's
   written review.
