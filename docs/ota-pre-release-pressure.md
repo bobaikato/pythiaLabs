@@ -7,31 +7,30 @@ claim that PythiaLabs is governed by Ota.
 
 - upstream revision: `17df87775c0d5407c07e86f278455d912ed51305`
 - fork branch: `bobai/ota-pre-release-pressure`
-- Ota source: Core `cd99c9abd2c0225b454371e897eca2486319db26`, reporting v1.6.27
+- Ota source: Core `52b53517f312b8dba66bd4a4dce53d96350bff69`, reporting v1.6.27
 - Ota bootstrap: contract-owned, immutable `git_rev`
 
 ## Evidence Matrix
 
-| Surface | Fork workflow exercise | Expected evidence | Not proved |
+| Job | Surface | Expected evidence | Not proved |
 | --- | --- | --- | --- |
-| Contract shape | `ota validate --json` | Validation result and exact Ota source version | Task execution or agent authority |
-| Declared lane posture | `ota tasks --json` | Four distinct, non-agent-safe contributor lanes | Hydration, runtime availability, or successful task behavior |
-| Readiness diagnosis | `ota doctor --json` | Current blockers and warnings as Ota observes them | Repository-wide readiness or remediation |
-| Conservative CI discovery | `ota detect --candidate-out ... --json` | Candidate, source inventory, evidence, closure, and unresolved findings | Candidate application, execution, or promotion to agent-safe authority |
-| Artifact retention | `actions/upload-artifact` | Machine-readable outputs and exit statuses for the exact fork run | Receipt, archive, assurance, or third-party attestation |
+| Declaration and discovery | `ota validate`, `ota tasks`, `ota doctor`, and conservative `ota detect` on Ubuntu | Contract shape, lane posture, readiness observations, and candidate evidence | Task execution or agent authority |
+| Native Ubuntu | All selected non-credentialed lanes through `ota run` | Linux execution output and per-lane exit status | Provider calls, merge, or credentialed CAEP |
+| Native macOS | The same selected native lanes | macOS compatibility evidence for the declared contributor surface | Container parity or external authority |
+| Native Windows | The same selected native lanes | Windows compatibility evidence for the declared contributor surface | Non-Windows container parity or external authority |
+| Linux container | MCP smoke and site build through `--mode container` | Selected Node-container context and retained command output | Pythia Dockerfile, multi-language image, or image provenance beyond the pinned digest |
 
-The workflow does not run `ota run`, `ota up`, Mix, Cargo, Node, Python, provider calls, a merge,
-or any external mutation. It is separate and non-required, but failures remain visible. It exists to
-pressure Ota's declaration, diagnostic, and conservative discovery surfaces before the v1.6.27
-release.
+The matrix is fork-only and non-blocking: each job uses `continue-on-error: true`, so it cannot
+affect upstream CI badges. Failures remain visible and retained. Credentialed provider calls,
+GitHub merge, Gmail/GitHub communication, and the Liminal multi-repository lifecycle remain
+excluded.
 
 ## Execution Matrix
 
-`.github/workflows/ota-pre-release-execution-pressure.yml` is a separate visible fork-only matrix.
-It observes the `core`, `mcp`, `worker`, and `site` workflow previews, then runs the selected
-non-credentialed tasks through `ota run` and retains each lane's text output and exit status. The workflow
-previews are expected to remain blocked until a crossing authority exists; they are evidence of
-that refusal, not green execution gates.
+The native matrix observes the `core`, `mcp`, `worker`, and `site` workflow previews, then runs
+the selected non-credentialed tasks through `ota run` on Ubuntu, macOS, and Windows. It retains
+each lane's text output and exit status. Workflow previews are expected to remain blocked until a
+crossing authority exists; they are evidence of refusal, not green execution gates.
 
 | Lane family | Included execution | Hydration posture | Deliberate limit |
 | --- | --- | --- | --- |
@@ -46,8 +45,7 @@ or the Liminal multi-repository lifecycle. It is distinct from the Ota-owned con
 
 ## Ota-Owned Container Matrix
 
-`.github/workflows/ota-pre-release-container-pressure.yml` is a separate Linux-only, fork-only
-matrix. It uses the contract's `node` execution context, pinned to
+The Linux container job uses the contract's `node` execution context, pinned to
 `node:20-bookworm@sha256:cacf10e99285cbbc891452e31249c1b5ec3ba225f40028fae946b75aeaf1b66a`
 for `linux/amd64`, invokes Ota with `--mode container --stream`, and retains the child command
 output with Ota's selected-context summary.

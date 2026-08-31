@@ -523,7 +523,6 @@ agent:
   protected_paths:
     - ota.yaml
     - .github/workflows/ota-pre-release-pressure.yml
-    - .github/workflows/ota-pre-release-execution-pressure.yml
     - docs/ota-pre-release-pressure.md
   bootstrap:
     ota:
