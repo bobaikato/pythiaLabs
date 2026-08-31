@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Install Ota from contract source
-        uses: ota-run/setup@v1
+        uses: ota-run/setup@493cba84bf7f7c11c9e8e996d832d93a89c62184 # v1.0.8
         with:
           source: contract
 

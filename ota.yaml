@@ -529,7 +529,7 @@ agent:
     ota:
       source:
         kind: git_rev
-        rev: cd99c9abd2c0225b454371e897eca2486319db26
+        rev: 52b53517f312b8dba66bd4a4dce53d96350bff69
   notes: |
     Discover the canonical agent surface with `ota tasks --safe --use` first. An agent may run
     only a lane reported callable for agent use, and must invoke that lane through
